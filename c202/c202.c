@@ -60,7 +60,7 @@ void stackInit ( tStack* s ) {
 ** volejte funkci stackError(SERR_INIT). U ostatních funkcí pro zjednodušení
 ** předpokládejte, že tato situace nenastane. 
 */
-	if (s != NULL)
+	if (s != NULL)      // zasobnik neni null -> vrchol = -1; pred pushnutim se automaticky vola top++ (prvni podminka z duvodu pravdepodobnejsiho vyuziti)
 	    s->top = -1;
 	else
 	    stackError(SERR_INIT);
@@ -97,7 +97,7 @@ void stackTop ( const tStack* s, char* c ) {
 ** Pro ověření, zda je zásobník prázdný, použijte dříve definovanou
 ** funkci stackEmpty.
 */
-	if (!stackEmpty(s))
+	if (!stackEmpty(s))  // (prvni podminka z duvodu pravdepodobnejsiho vyuziti)
 	    *c = s->arr[s->top];
 	else
 		stackError(SERR_TOP);
@@ -129,11 +129,11 @@ void stackPush ( tStack* s, char c ) {
 ** Pro ověření, zda je zásobník plný, použijte dříve definovanou
 ** funkci stackFull.
 */
-    if (stackFull(s)) {
-        stackError(SERR_PUSH);
-    } else {
+    if (!stackFull(s)) { // (prvni podminka z duvodu pravdepodobnejsiho vyuziti)
         s->top++;
         s->arr[s->top] = c;
+    } else {
+        stackError(SERR_PUSH);
     }
 }
 
