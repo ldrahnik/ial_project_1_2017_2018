@@ -60,8 +60,10 @@ void stackInit ( tStack* s ) {
 ** volejte funkci stackError(SERR_INIT). U ostatních funkcí pro zjednodušení
 ** předpokládejte, že tato situace nenastane. 
 */
-
-	  solved = 0;                      /* V případě řešení, smažte tento řádek! */
+	if (s != NULL)
+	    s->top = -1;
+	else
+	    stackError(SERR_INIT);
 }
 
 int stackEmpty ( const tStack* s ) {
@@ -70,8 +72,7 @@ int stackEmpty ( const tStack* s ) {
 ** Funkci implementujte jako jediný příkaz. Vyvarujte se zejména konstrukce
 ** typu "if ( true ) b=true else b=false".
 */
-
-	  solved = 0;                      /* V případě řešení, smažte tento řádek! */
+    return (s->top == -1);
 }
 
 int stackFull ( const tStack* s ) {
@@ -83,8 +84,7 @@ int stackFull ( const tStack* s ) {
 **
 ** Funkci implementujte jako jediný příkaz.
 */
-
-	  solved = 0;                      /* V případě řešení, smažte tento řádek! */
+	return (s->top + 1 == STACK_SIZE);
 }
 
 void stackTop ( const tStack* s, char* c ) {
@@ -97,8 +97,10 @@ void stackTop ( const tStack* s, char* c ) {
 ** Pro ověření, zda je zásobník prázdný, použijte dříve definovanou
 ** funkci stackEmpty.
 */
-
-	  solved = 0;                      /* V případě řešení, smažte tento řádek! */
+	if (!stackEmpty(s))
+	    *c = s->arr[s->top];
+	else
+		stackError(SERR_TOP);
 }
 
 
@@ -114,8 +116,8 @@ void stackPop ( tStack* s ) {
 ** jednoduchost neděláme.
 ** 
 */
-
-	  solved = 0;                      /* V případě řešení, smažte tento řádek! */
+	if (!stackEmpty(s))
+		s->top--;
 }
 
 
@@ -127,8 +129,12 @@ void stackPush ( tStack* s, char c ) {
 ** Pro ověření, zda je zásobník plný, použijte dříve definovanou
 ** funkci stackFull.
 */
-
-	  solved = 0;                      /* V případě řešení, smažte tento řádek! */
+    if (stackFull(s)) {
+        stackError(SERR_PUSH);
+    } else {
+        s->top++;
+        s->arr[s->top] = c;
+    }
 }
 
 /* Konec c202.c */
