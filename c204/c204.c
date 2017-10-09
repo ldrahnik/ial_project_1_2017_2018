@@ -49,8 +49,6 @@ int solved;
 ** nadeklarovat a používat pomocnou proměnnou typu char.
 */
 void untilLeftPar ( tStack* s, char* postExpr, unsigned* postLen ) {
-    const char leftPar = '(';
-
     // pomocny znak
     char topChar;
 
@@ -59,7 +57,7 @@ void untilLeftPar ( tStack* s, char* postExpr, unsigned* postLen ) {
 
     // dokud neni zasobnik prazdny hledame levou zavorku `(`, kterou take odstranime -> do te doby odstranujeme znaky
     while (!stackEmpty(s)) {
-        if (topChar != leftPar) {
+        if (topChar != '(') {
 
     	    // vlozeni znaku do vystupniho pole
     		postExpr[*postLen] = topChar;
@@ -93,7 +91,30 @@ void untilLeftPar ( tStack* s, char* postExpr, unsigned* postLen ) {
 ** představuje parametr postLen, výstupním polem znaků je opět postExpr.
 */
 void doOperation ( tStack* s, char c, char* postExpr, unsigned* postLen ) {
+	char topChar;
 
+	// nacteni znaku z vrcholu zasobniku pokud neni zasobnik prazdny
+	if (!stackEmpty(s)) {
+		stackTop(s, &topChar);
+	}
+
+	// Operátor vkladam na vrchol zasobniku v pripade, ze:
+	// - zásobník je prázdný
+	// - na vrcholu zásobníku je levá závorka
+	// - na vrcholu zásobníku je operátor s nižší prioritou
+	if (
+	    (stackEmpty(s))  ||
+	    (topChar == '(') ||
+	    (topChar == '+' && c != '-' && c != '+') ||
+	    (topChar == '-' && c != '-' && c != '+')
+	   ) {
+		stackPush(s, c);
+	} else {
+		postExpr[*postLen] = topChar;
+		*postLen += 1;
+		stackPop(s);
+		doOperation(s, c, postExpr, postLen);
+	}
 }
 
 /* 
@@ -141,9 +162,70 @@ void doOperation ( tStack* s, char c, char* postExpr, unsigned* postLen ) {
 ** řetězce konstantu NULL.
 */
 char* infix2postfix (const char* infExpr) {
+    // vystupni retezec + alokace vystupniho retezce
+	char *postExpr;
+    if ((postExpr = (char *) malloc(MAX_LEN)) == NULL)
+    	return NULL;
 
-  solved = 0;                        /* V případě řešení smažte tento řádek! */
-  return NULL;                /* V případě řešení můžete smazat tento řádek. */
+    // alokace a init zasobniku
+	tStack *s;
+    if ((s = (tStack*) malloc(sizeof(tStack))) == NULL)
+    	return NULL;
+    stackInit(s);
+
+    // zjisteni delky retezce
+    int infExprLength = 0;
+
+    // Řetězcem (infixového a postfixového výrazu) je zde myšleno pole znaků typu
+    // char, jenž je korektně ukončeno nulovým znakem dle zvyklostí jazyka C.
+    while (infExpr[infExprLength] != '\0') infExprLength++;
+
+	// zpracovani retezce
+	unsigned int i, postLen = 0;
+	for (i = 0; i <= infExprLength; i++) {
+
+	    // Hodnoty ve výrazu jsou reprezentovány jednoznakovými identifikátory
+        // a číslicemi - 0..9, a..z, A..Z (velikost písmen se rozlišuje).
+		if ((infExpr[i] >= '0' && infExpr[i] <= '9') ||
+		    (infExpr[i] >= 'A' && infExpr[i] <= 'Z') ||
+		    (infExpr[i] >= 'a' && infExpr[i] <= 'z')
+		   ) {
+		    // pridame do vysledneho vyrazu a inkrementujeme pozici
+			postExpr[postLen] = infExpr[i];
+			postLen++;
+		} else if (infExpr[i] == ')') {
+			untilLeftPar(s, postExpr, &postLen);
+		} else if (infExpr[i] == '(') {
+		    stackPush(s, infExpr[i]);
+		// Každý korektně zapsaný výraz (infixový i postfixový) musí být uzavřen
+        // ukončovacím znakem '='.
+		} else if (infExpr[i] == '=') {
+			while (!stackEmpty(s)) {
+				stackTop(s, &postExpr[postLen]);
+				stackPop(s);
+				postLen++;
+			}
+			postExpr[postLen] = '=';
+			postLen++;
+
+			// Řetězcem (infixového a postfixového výrazu) je zde myšleno pole znaků typu
+            // char, jenž je korektně ukončeno nulovým znakem dle zvyklostí jazyka C.
+			postExpr[postLen] = '\0';
+		// Výraz obsahuje operátory + - * / ve významu sčítání, odčítání,
+        // násobení a dělení.
+		} else if ((infExpr[i] == '+' || infExpr[i] == '-') ||
+		            infExpr[i] == '*' || infExpr[i] == '/') {
+			doOperation(s, infExpr[i], postExpr, &postLen);
+		} else {
+		    // Na vstupu očekávejte pouze korektně zapsané a ukončené výrazy.
+		}
+	}
+
+    // uvolneni pameti zasobniku
+	free(s);
+
+    // vracim postExpr - k uvolneni pameti nedochazi (NUTNO UVOLNIT PAMET!)
+    return postExpr;
 }
 
 /* Konec c204.c */
