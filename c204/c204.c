@@ -49,7 +49,37 @@ int solved;
 ** nadeklarovat a používat pomocnou proměnnou typu char.
 */
 void untilLeftPar ( tStack* s, char* postExpr, unsigned* postLen ) {
+    const char leftPar = '(';
 
+    // pomocny znak
+    char topChar;
+
+    // nacteni znaku z vrcholu zasobniku
+    stackTop(s, &topChar);
+
+    // dokud neni zasobnik prazdny hledame levou zavorku `(`, kterou take odstranime -> do te doby odstranujeme znaky
+    while (!stackEmpty(s)) {
+        if (topChar != leftPar) {
+
+    	    // vlozeni znaku do vystupniho pole
+    		postExpr[*postLen] = topChar;
+
+    		// posuneme ukazatel na prvni volne misto ve vystupnim poli
+    		*postLen += 1;
+
+            // znak odebereme ze zasobniku
+    		stackPop(s);
+
+    		// nacteme dalsi znak ze zasobniku
+    		stackTop(s, &topChar);
+    	} else {
+
+    	    // leva zavorka bude take odstranena (pouze)
+    		stackPop(s);
+
+    		return;
+    	}
+    }
 }
 
 /*
